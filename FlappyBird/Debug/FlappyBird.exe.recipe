@@ -2,7 +2,7 @@
 <Project>
   <ProjectOutputs>
     <ProjectOutput>
-      <FullPath>D:\Flappy-Bird-Machine-Learning\FlappyBird 2.0\Debug\FlappyBird.exe</FullPath>
+      <FullPath>D:\ai\Flappy-Bird-Machine-Learning\Debug\FlappyBird.exe</FullPath>
     </ProjectOutput>
   </ProjectOutputs>
   <ContentFiles />
