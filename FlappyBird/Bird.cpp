@@ -56,7 +56,7 @@ namespace Sonar
 	{
 		if (BIRD_STATE_FALLING == _birdState)
 		{
-			_birdSprite.move(0, GRAVITY * dt);
+			_birdSprite.move(0, GRAVITY * GAME_SPEED * dt);
 
 			_rotation += ROTATION_SPEED * dt;
 
@@ -69,7 +69,7 @@ namespace Sonar
 		}
 		else if (BIRD_STATE_FLYING == _birdState)
 		{
-			_birdSprite.move(0, -FLYING_SPEED * dt);
+			_birdSprite.move(0, -FLYING_SPEED * GAME_SPEED * dt);
 			if (_birdSprite.getPosition().y < 0) {
 				sf::Vector2f v = _birdSprite.getPosition();
 				v.y = 0;
@@ -86,7 +86,7 @@ namespace Sonar
 			_birdSprite.setRotation(_rotation);
 		}
 
-		if (_movementClock.getElapsedTime().asSeconds() > FLYING_DURATION)
+		if (_movementClock.getElapsedTime().asSeconds() > (FLYING_DURATION/GAME_SPEED))
 		{
 			_movementClock.restart();
 			_birdState = BIRD_STATE_FALLING;

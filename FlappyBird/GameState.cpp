@@ -119,7 +119,7 @@ namespace Sonar
 		{
 			pipe->MovePipes(dt);
 
-			if (clock.getElapsedTime().asSeconds() > PIPE_SPAWN_FREQUENCY)
+			if (clock.getElapsedTime().asSeconds() > (PIPE_SPAWN_FREQUENCY/GAME_SPEED))
 			{
 				pipe->RandomisePipeOffset();
 

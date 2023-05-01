@@ -20,7 +20,7 @@ namespace Sonar
 		for (unsigned short int i = 0; i < _landSprites.size(); i++)
 		{
 			sf::Vector2f position = _landSprites.at(i).getPosition();
-			float movement = PIPE_MOVEMENT_SPEED * dt;
+			float movement = PIPE_MOVEMENT_SPEED * GAME_SPEED * dt;
 
 			_landSprites.at(i).move(-movement, 0.0f);
 

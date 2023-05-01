@@ -59,7 +59,7 @@ namespace Sonar
 			else
 			{
 				sf::Vector2f position = pipeSprites.at(i).getPosition();
-				float movement = PIPE_MOVEMENT_SPEED * dt;
+				float movement = PIPE_MOVEMENT_SPEED * GAME_SPEED * dt;
 
 				pipeSprites.at(i).move(-movement, 0);
 			}
@@ -74,7 +74,7 @@ namespace Sonar
 			else
 			{
 				sf::Vector2f position = scoringPipes.at(i).getPosition();
-				float movement = PIPE_MOVEMENT_SPEED * dt;
+				float movement = PIPE_MOVEMENT_SPEED * GAME_SPEED * dt;
 
 				scoringPipes.at(i).move(-movement, 0);
 			}

@@ -1,19 +1,13 @@
 ﻿  AIController.cpp
-  AssetManager.cpp
   Bird.cpp
-  Collision.cpp
   Flash.cpp
-  Game.cpp
   GameOverState.cpp
   GameState.cpp
   HUD.cpp
-  InputManager.cpp
   Land.cpp
-  main.cpp
   MainMenuState.cpp
   Pipe.cpp
   SplashState.cpp
-  StateMachine.cpp
+  main.cpp
   Generating Code...
-  LINK : D:\ai\Flappy-Bird-Machine-Learning\Debug\FlappyBird.exe not found or not built by the last incremental link; performing full link
-  FlappyBird.vcxproj -> D:\ai\Flappy-Bird-Machine-Learning\Debug\FlappyBird.exe
+  FlappyBird.vcxproj -> C:\Users\szymo\Documents\Development\Programming\Flappy-Bird-Machine-Learning\Debug\FlappyBird.exe
