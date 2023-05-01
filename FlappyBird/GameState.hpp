@@ -20,6 +20,7 @@ namespace Sonar
 	{
 	public:
 		GameState(GameDataRef data);
+		~GameState();
 
 		void Init();
 
@@ -29,7 +30,7 @@ namespace Sonar
 
 		Pipe* GetPipeContainer() { return pipe; };
 		Land* GetLandContainer() { return land; };
-		Bird* GetBird() { return bird; }
+		std::vector<Bird*> GetBirds() { return birds; }
 
 	private:
 		GameDataRef _data;
@@ -38,7 +39,8 @@ namespace Sonar
 
 		Pipe *pipe;
 		Land *land;
-		Bird *bird;
+		std::vector<Bird*> birds;
+		//Bird *bird;
 		Collision collision;
 		Flash *flash;
 		HUD *hud;

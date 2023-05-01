@@ -27,6 +27,9 @@ namespace Sonar
 
 		void getHeight(int& x, int& y);
 
+		int score = 0;
+		bool isAlive = true;
+
 	private:
 		GameDataRef _data;
 
@@ -42,6 +45,7 @@ namespace Sonar
 		int _birdState;
 
 		float _rotation;
+
 
 	};
 }

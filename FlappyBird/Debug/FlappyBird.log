@@ -1,13 +1,2 @@
 ﻿  AIController.cpp
-  Bird.cpp
-  Flash.cpp
-  GameOverState.cpp
-  GameState.cpp
-  HUD.cpp
-  Land.cpp
-  MainMenuState.cpp
-  Pipe.cpp
-  SplashState.cpp
-  main.cpp
-  Generating Code...
   FlappyBird.vcxproj -> C:\Users\szymo\Documents\Development\Programming\Flappy-Bird-Machine-Learning\Debug\FlappyBird.exe

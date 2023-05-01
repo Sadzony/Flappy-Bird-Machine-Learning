@@ -20,14 +20,14 @@ AIController::~AIController()
 
 // update - the AI method which determines whether the bird should flap or not. 
 // set m_bShouldFlap to true or false.
-void AIController::update()
+void AIController::update(Bird* p_bird)
 {
 	if (m_pGameState == nullptr)
 		return;
 
 	Pipe* pipe = m_pGameState->GetPipeContainer();
 	Land* land = m_pGameState->GetLandContainer();
-	Bird* bird = m_pGameState->GetBird();
+	Bird* bird = p_bird;
 
 	// do some AI stuff, decide whether to flap
 	float fDistanceToFloor = distanceToFloor(land, bird);
@@ -37,8 +37,6 @@ void AIController::update()
 	if (fDistanceToNearestPipe != ERROR_DISTANCE) {
 		float fDistanceToCentreOfGap = distanceToCentreOfPipeGap(pipe, bird);
 		fDistanceToCentreOfGap = fDistanceToCentreOfGap;
-
-		
 	}
 	
 	// this means the birdie always flaps. Should only be called when the bird should need to flap. 
