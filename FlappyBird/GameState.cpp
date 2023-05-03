@@ -119,7 +119,7 @@ namespace Sonar
 		{
 			ImportBirds(_data, populationData);
 			#if REPLAY == false
-			Evolve();
+			Evolve(_data);
 			generationNumber++;
 			#endif
 			//Reset the imported score to 0
@@ -523,7 +523,7 @@ namespace Sonar
 
 		birds = loadedBirds;
 	}
-	void GameState::Evolve()
+	void GameState::Evolve(GameDataRef data)
 	{
 		//Initialize mating pool
 		std::vector<Bird*> matingPool = std::vector<Bird*>();
@@ -532,6 +532,7 @@ namespace Sonar
 
 		//Elitist selection
 		output.push_back(birds.at(0));
+		matingPool.push_back(birds.at(0));
 
 		//Tournament selection
 		while (matingPool.size() < MATING_POOL_SIZE)
@@ -547,6 +548,7 @@ namespace Sonar
 			selectionGroup.sort(Bird::BirdComparison);
 			matingPool.push_back(*selectionGroup.begin());
 		}
+	
 
 		//The mating pool has now been created, so perform crossover
 
@@ -564,7 +566,87 @@ namespace Sonar
 			while (parent1Index == parent2Index)
 				parent2Index = rand() % matingPool.size();
 			parent2 = matingPool.at(parent2Index);
-			output.push_back(Crossover(parent1, parent2));
+			output.push_back(Crossover(data, parent1, parent2));
+		}
+
+		//Mutate
+
+		//iterate output birds, excluding the elite
+		for (int i = 1; i < output.size(); i++)
+		{
+			//iterate layers
+			for (int j = 0; j < output.at(i)->nodeNetwork.size(); j++)
+			{
+				//Input layer
+				if (j == 0)
+				{
+					//iterate nodes
+					for (int k = 0; k < output.at(i)->nodeNetwork.at(j).size(); k++)
+					{
+						InputNode* node = static_cast<InputNode*>(output.at(i)->nodeNetwork.at(j).at(k));
+						//Find if mutation happens
+						int mutation = rand() % 101;
+						if (mutation < MUTATION_RATE)
+						{
+							//positive or negative change
+							int random = rand() % 2;
+							float weight = node->weight;
+							if (random == 0)
+							{
+								weight += MUTATION_ADJUSTMENT;
+							}
+							else
+							{
+								weight -= MUTATION_ADJUSTMENT;
+							}
+							node->weight = weight;
+						}
+					}
+				}
+				//Hidden layers
+				else
+				{
+					//iterate nodes
+					for (int k = 0; k < output.at(i)->nodeNetwork.at(j).size(); k++)
+					{
+						ActivationNode* node = static_cast<ActivationNode*>(output.at(i)->nodeNetwork.at(j).at(k));
+						//Find if mutation happens on weight
+						int mutation = rand() % 101;
+						if (mutation < MUTATION_RATE)
+						{
+							//positive or negative change
+							int random = rand() % 2;
+							float weight = node->weight;
+							if (random == 0) 
+							{
+								weight += MUTATION_ADJUSTMENT;
+							}
+							else 
+							{
+								weight -= MUTATION_ADJUSTMENT;
+							}
+							node->weight = weight;
+						}
+						//Find if mutation happens on bias
+						mutation = rand() % 101;
+						if (mutation < MUTATION_RATE)
+						{
+							//positive or negative change
+							int random = rand() % 2;
+							float bias = node->bias;
+							if (random == 0)
+							{
+								bias += MUTATION_ADJUSTMENT;
+							}
+							else
+							{
+								bias -= MUTATION_ADJUSTMENT;
+							}
+							node->bias = bias;
+						}
+					}
+				}
+			}
 		}
 
 
@@ -578,29 +660,135 @@ namespace Sonar
 
 		birds = output;
 	}
-	Bird* GameState::Crossover(Bird* parent1, Bird* parent2)
+	Bird* GameState::Crossover(GameDataRef data, Bird* parent1, Bird* parent2)
 	{
+		std::vector<std::vector<Node*>> nodeNetwork = std::vector<std::vector<Node*>>();
 		//iterate layers
 		for (int i = 0; i < parent1->nodeNetwork.size(); i++)
 		{
 			//input layer
 			if (i == 0)
 			{
+				std::vector<Node*> layer = std::vector<Node*>();
 				//iterate nodes
 				for (int j = 0; j < parent1->nodeNetwork.at(i).size(); j++)
 				{
+					InputNode* parent1Node = static_cast<InputNode*>(parent1->nodeNetwork.at(i).at(j));
+					InputNode* parent2Node = static_cast<InputNode*>(parent2->nodeNetwork.at(i).at(j));
+					float difference = 0;
+					//find if the numbers have same sign, then find difference
+					if (std::signbit(parent1Node->weight) == std::signbit(parent2Node->weight))
+					{
+						if (abs(parent1Node->weight) > abs(parent2Node->weight))
+							difference = abs(parent1Node->weight) - abs(parent2Node->weight);
+						else
+							difference = abs(parent2Node->weight) - abs(parent1Node->weight);
+					}
+					else
+						difference = abs(parent1Node->weight) + abs(parent2Node->weight);
+					float adjustment = difference * CROSSOVER_RATE;
+					int random = rand() % 2;
+					float weight = 0;
+					//Choose a weight from the 2 parents, and adjust it towards the other parent
+					if (random == 0) 
+					{
+						weight = parent1Node->weight;
+						if (parent1Node->weight > parent2Node->weight)
+							weight -= adjustment;
+						else
+							weight += adjustment;
+					}
+					else 
+					{
+						weight = parent2Node->weight;
+						if (parent2Node->weight > parent1Node->weight)
+							weight -= adjustment;
+						else
+							weight += adjustment;
+					}
+					layer.push_back(new InputNode(weight));
 
 				}
+				nodeNetwork.push_back(layer);
 			}
 			//Hidden layers
 			else 
 			{
+				std::vector<Node*> layer = std::vector<Node*>();
 				//iterate nodes
 				for (int j = 0; j < parent1->nodeNetwork.at(i).size(); j++)
 				{
+					ActivationNode* parent1Node = static_cast<ActivationNode*>(parent1->nodeNetwork.at(i).at(j));
+					ActivationNode* parent2Node = static_cast<ActivationNode*>(parent2->nodeNetwork.at(i).at(j));
+					float weightDifference = 0;
+					//find if the numbers have same sign, then find difference
+					if (std::signbit(parent1Node->weight) == std::signbit(parent2Node->weight))
+					{
+						if (abs(parent1Node->weight) > abs(parent2Node->weight))
+							weightDifference = abs(parent1Node->weight) - abs(parent2Node->weight);
+						else
+							weightDifference = abs(parent2Node->weight) - abs(parent1Node->weight);
+					}
+					else
+						weightDifference = abs(parent1Node->weight) + abs(parent2Node->weight);
+					float adjustment = weightDifference * CROSSOVER_RATE;
+					int random = rand() % 2;
+					float weight = 0;
+					//Choose a weight from the 2 parents, and adjust it towards the other parent
+					if (random == 0)
+					{
+						weight = parent1Node->weight;
+						if (parent1Node->weight > parent2Node->weight)
+							weight -= adjustment;
+						else
+							weight += adjustment;
+					}
+					else
+					{
+						weight = parent2Node->weight;
+						if (parent2Node->weight > parent1Node->weight)
+							weight -= adjustment;
+						else
+							weight += adjustment;
+					}
 
+					float biasDifference = 0;
+					//find if the numbers have same sign, then find difference
+					if (std::signbit(parent1Node->bias) == std::signbit(parent2Node->bias))
+					{
+						if (abs(parent1Node->bias) > abs(parent2Node->bias))
+							weightDifference = abs(parent1Node->bias) - abs(parent2Node->bias);
+						else
+							weightDifference = abs(parent2Node->bias) - abs(parent1Node->bias);
+					}
+					else
+						weightDifference = abs(parent1Node->bias) + abs(parent2Node->bias);
+					adjustment = biasDifference * CROSSOVER_RATE;
+					random = rand() % 2;
+					float bias = 0;
+					//Choose a bias from the 2 parents, and adjust it towards the other parent
+					if (random == 0)
+					{
+						bias = parent1Node->bias;
+						if (parent1Node->bias > parent2Node->bias)
+							bias -= adjustment;
+						else
+							bias += adjustment;
+					}
+					else
+					{
+						bias = parent2Node->bias;
+						if (parent2Node->bias > parent1Node->bias)
+							bias -= adjustment;
+						else
+							bias += adjustment;
+					}
+
+					layer.push_back(new ActivationNode(weight, bias));
 				}
+				nodeNetwork.push_back(layer);
 			}
 		}
+		return new Bird(data, nodeNetwork);
 	}
 }

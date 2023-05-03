@@ -115,7 +115,7 @@ namespace Sonar
     void GameOverState::Update(float dt)
     {
         elapsedTime += dt;
-        if(elapsedTime > 1.5f)
+        if(elapsedTime > 0.35f)
             this->_data->machine.AddState(new GameState(_data), true);
     }
     
