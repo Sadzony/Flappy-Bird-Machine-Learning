@@ -2,8 +2,10 @@
 
 namespace Sonar
 {
-	Bird::Bird(GameDataRef data) : _data(data)
+	Bird::Bird(GameDataRef data, std::vector<std::vector<Node*>> p_nodeNetwork) : _data(data)
 	{
+		nodeNetwork = std::vector<std::vector<Node*>>(p_nodeNetwork);
+
 		_animationIterator = 0;
 
 		_animationFrames.push_back(this->_data->assets.GetTexture("Bird Frame 1"));
@@ -26,6 +28,15 @@ namespace Sonar
 
 	Bird::~Bird()
 	{
+		for (std::vector<Node*> layer : nodeNetwork)
+		{
+			for (Node* node : layer)
+			{
+				delete node;
+			}
+			layer.clear();
+		}
+		nodeNetwork.clear();
 	}
 
 	void Bird::Draw()

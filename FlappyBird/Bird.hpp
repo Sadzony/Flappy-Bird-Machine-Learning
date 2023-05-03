@@ -4,6 +4,7 @@
 
 #include "DEFINITIONS.hpp"
 #include "Game.hpp"
+#include "Node.h"
 
 #include <vector>
 
@@ -12,7 +13,7 @@ namespace Sonar
 	class Bird
 	{
 	public:
-		Bird(GameDataRef data);
+		Bird(GameDataRef data, std::vector<std::vector<Node*>> p_nodeNetwork);
 		~Bird();
 
 		void Draw();
@@ -46,6 +47,6 @@ namespace Sonar
 
 		float _rotation;
 
-
+		std::vector<std::vector<Node*>> nodeNetwork;
 	};
 }

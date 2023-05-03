@@ -49,6 +49,10 @@
     <ClCompile Include="AIController.cpp">
       <Filter>AI Code</Filter>
     </ClCompile>
+    <ClCompile Include="Node.cpp">
+      <Filter>AI Code</Filter>
+    </ClCompile>
+    <ClCompile Include="State.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AssetManager.hpp">
@@ -100,6 +104,9 @@
       <Filter>Core code &amp; Assets</Filter>
     </ClInclude>
     <ClInclude Include="AIController.h">
+      <Filter>AI Code</Filter>
+    </ClInclude>
+    <ClInclude Include="Node.h">
       <Filter>AI Code</Filter>
     </ClInclude>
   </ItemGroup>

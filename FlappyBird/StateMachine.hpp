@@ -15,16 +15,16 @@ namespace Sonar
 		StateMachine() { }
 		~StateMachine() { }
 
-		void AddState(StateRef newState, bool isReplacing = true);
+		void AddState(State* newState, bool isReplacing = true);
 		void RemoveState();
 		// Run at start of each loop in Game.cpp
 		void ProcessStateChanges();
 
-		StateRef &GetActiveState();
+		State* &GetActiveState();
 
 	private:
-		std::stack<StateRef> _states;
-		StateRef _newState;
+		std::stack<State*> _states;
+		State* _newState;
 
 		bool _isRemoving;
 		bool _isAdding, _isReplacing;

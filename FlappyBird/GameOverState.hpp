@@ -33,6 +33,7 @@ namespace Sonar
         int _score;
         int _highScore;
         
+        float elapsedTime = 0;
     };
 }
 

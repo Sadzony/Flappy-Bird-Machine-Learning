@@ -39,9 +39,12 @@
 #define POINT_SOUND_FILEPATH "Resources/audio/Point.wav"
 #define WING_SOUND_FILEPATH "Resources/audio/Wing.wav"
 
-#define POPULATION_SIZE 1
+#define POPULATION_SIZE 10
 
-#define GAME_SPEED 2
+#define HIDDEN_LAYERS 1
+#define NODES_PER_LAYER 4
+
+#define GAME_SPEED 1
 
 #define PIPE_MOVEMENT_SPEED 200.0f
 #define PIPE_SPAWN_FREQUENCY 1.5f

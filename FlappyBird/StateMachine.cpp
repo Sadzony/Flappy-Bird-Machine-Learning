@@ -2,12 +2,12 @@
 
 namespace Sonar
 {
-	void StateMachine::AddState(StateRef newState, bool isReplacing)
+	void StateMachine::AddState(State* newState, bool isReplacing)
 	{
 		this->_isAdding = true;
 		this->_isReplacing = isReplacing;
 
-		this->_newState = std::move(newState);
+		this->_newState = newState;
 	}
 
 	void StateMachine::RemoveState()
@@ -19,7 +19,10 @@ namespace Sonar
 	{
 		if (this->_isRemoving && !this->_states.empty())
 		{
+			State* current = this->_states.top();
 			this->_states.pop();
+			if(current != nullptr)
+				delete current;
 
 			if (!this->_states.empty())
 			{
@@ -35,7 +38,10 @@ namespace Sonar
 			{
 				if (this->_isReplacing)
 				{
+					State* current = this->_states.top();
 					this->_states.pop();
+					if (current != nullptr)
+						delete current;
 				}
 				else
 				{
@@ -43,13 +49,13 @@ namespace Sonar
 				}
 			}
 
-			this->_states.push(std::move(this->_newState));
+			this->_states.push(this->_newState);
 			this->_states.top()->Init();
 			this->_isAdding = false;
 		}
 	}
 
-	StateRef &StateMachine::GetActiveState()
+	State* &StateMachine::GetActiveState()
 	{
 		return this->_states.top();
 	}

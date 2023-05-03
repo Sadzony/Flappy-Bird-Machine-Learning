@@ -54,8 +54,10 @@
     <ClCompile Include="Land.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainMenuState.cpp" />
+    <ClCompile Include="Node.cpp" />
     <ClCompile Include="Pipe.cpp" />
     <ClCompile Include="SplashState.cpp" />
+    <ClCompile Include="State.cpp" />
     <ClCompile Include="StateMachine.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -72,6 +74,7 @@
     <ClInclude Include="InputManager.hpp" />
     <ClInclude Include="Land.hpp" />
     <ClInclude Include="MainMenuState.hpp" />
+    <ClInclude Include="Node.h" />
     <ClInclude Include="Pipe.hpp" />
     <ClInclude Include="SplashState.hpp" />
     <ClInclude Include="State.hpp" />

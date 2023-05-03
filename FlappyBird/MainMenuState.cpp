@@ -42,7 +42,7 @@ namespace Sonar
 			if (this->_data->input.IsSpriteClicked(this->_playButton, sf::Mouse::Left, this->_data->window))
 			{
 				// Switch To Main Menu
-				this->_data->machine.AddState(StateRef(new GameState(_data)), true);
+				this->_data->machine.AddState(new GameState(_data), true);
 			}
 		}
 	}

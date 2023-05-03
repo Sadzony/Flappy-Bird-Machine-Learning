@@ -15,6 +15,7 @@ namespace Sonar
     
     void GameOverState::Init()
     {
+        elapsedTime = 0;
         std::ifstream readFile;
         readFile.open( "Resources/Highscore.txt" );
         
@@ -106,14 +107,16 @@ namespace Sonar
             
             if (this->_data->input.IsSpriteClicked(this->_retryButton, sf::Mouse::Left, this->_data->window))
             {
-                this->_data->machine.AddState(StateRef(new GameState(_data)), true);
+                this->_data->machine.AddState(new GameState(_data), true);
             }
         }
     }
     
     void GameOverState::Update(float dt)
     {
-        
+        elapsedTime += dt;
+        if(elapsedTime > 1.5f)
+            this->_data->machine.AddState(new GameState(_data), true);
     }
     
     void GameOverState::Draw(float dt)

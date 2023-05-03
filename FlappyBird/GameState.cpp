@@ -36,6 +36,8 @@ namespace Sonar
 		birds.clear();
 	}
 
+
+
 	void GameState::Init()
 	{
 		if (!_hitSoundBuffer.loadFromFile(HIT_SOUND_FILEPATH))
@@ -72,7 +74,26 @@ namespace Sonar
 		land = new Land(_data);
 		for (int i = 0; i < POPULATION_SIZE; i++)
 		{
-			birds.push_back(new Bird(_data));
+			//Initialize the genetic data of the bird to a network of nodes
+			std::vector<std::vector<Node*>> nodeNetwork = std::vector<std::vector<Node*>>();
+
+			std::vector<Node*> inputNodes = std::vector<Node*>();
+			for (int i = 0; i < 3; i++)
+			{
+				inputNodes.push_back(new InputNode());
+			}
+			nodeNetwork.push_back(inputNodes);
+			for (int i = 0; i < HIDDEN_LAYERS; i++)
+			{
+				std::vector<Node*> layer = std::vector<Node*>();
+				for (int j = 0; j < NODES_PER_LAYER; j++)
+				{
+					layer.push_back(new ActivationNode());
+				}
+				nodeNetwork.push_back(layer);
+			}
+			
+			birds.push_back(new Bird(_data, nodeNetwork));
 		}
 		flash = new Flash(_data);
 		hud = new HUD(_data);
@@ -180,7 +201,7 @@ namespace Sonar
 
 							//clock.restart();
 
-							_hitSound.play();
+							//_hitSound.play();
 						}
 					}
 				}
@@ -199,7 +220,7 @@ namespace Sonar
 							std::cout << "death" << std::endl;
 							//clock.restart();
 
-							_hitSound.play();
+							//_hitSound.play();
 						}
 					}
 				}
@@ -233,7 +254,7 @@ namespace Sonar
 
 								scoringSprites.erase(scoringSprites.begin() + i);
 
-								_pointSound.play();
+								//_pointSound.play();
 							}
 						}
 					}
@@ -252,7 +273,7 @@ namespace Sonar
 
 			if (clock.getElapsedTime().asSeconds() > TIME_BEFORE_GAME_OVER_APPEARS)
 			{
-				this->_data->machine.AddState(StateRef(new GameOverState(_data, _score)), true);
+				this->_data->machine.AddState(new GameOverState(_data, _score), true);
 			}
 		}
 	}

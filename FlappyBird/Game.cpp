@@ -12,7 +12,7 @@ namespace Sonar
 		srand((unsigned int)time(NULL));
 
 		_data->window.create(sf::VideoMode(width, height), title, sf::Style::Close | sf::Style::Titlebar);
-		_data->machine.AddState(StateRef(new SplashState(this->_data)));
+		_data->machine.AddState(new SplashState(this->_data));
 
 		this->Run();
 	}
