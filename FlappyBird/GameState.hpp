@@ -46,6 +46,7 @@ namespace Sonar
 		
 		//Evolves the bird list and creates the next generation
 		void Evolve();
+		Bird* Crossover(Bird* parent1, Bird* parent2);
 
 		GameDataRef _data;
 

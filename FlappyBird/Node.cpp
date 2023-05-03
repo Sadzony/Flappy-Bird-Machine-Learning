@@ -14,7 +14,7 @@ InputNode::InputNode()
 {
 	//Generate random weight (not 0)
 	while (std::abs(weight) < 0.001f) {
-		weight = -0.7f + ((float)rand() / ((float)RAND_MAX / (0.7f - -0.7f)));
+		weight = -1.5f + ((float)rand() / ((float)RAND_MAX / (1.5f - -1.5f)));
 	}
 }
 
@@ -27,9 +27,9 @@ ActivationNode::ActivationNode()
 {
 	//Generate random weight and bias
 	while (std::abs(weight) < 0.001f) {
-		weight = -0.7f + ((float)rand() / ((float)RAND_MAX / (0.7f - -0.7f)));
+		weight = -1.5f + ((float)rand() / ((float)RAND_MAX / (1.5f - -1.5f)));
 	}
-	bias = -0.7f + ((float)rand() / ((float)RAND_MAX / (0.7f - -0.7f)));
+	bias = -1.5f + ((float)rand() / ((float)RAND_MAX / (1.5f - -1.5f)));
 }
 
 float ActivationNode::GenerateOutput()

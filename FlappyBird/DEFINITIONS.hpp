@@ -39,7 +39,9 @@
 #define POINT_SOUND_FILEPATH "Resources/audio/Point.wav"
 #define WING_SOUND_FILEPATH "Resources/audio/Wing.wav"
 
-#define POPULATION_SIZE 10
+#define POPULATION_SIZE 50
+#define MATING_POOL_SIZE 75
+#define SELECTION_GROUP_SIZE 10
 
 #define HIDDEN_LAYERS 1
 #define NODES_PER_LAYER 4

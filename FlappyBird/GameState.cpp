@@ -8,7 +8,7 @@
 
 #include <iostream>
 
-#define REPLAY true
+#define REPLAY false
 
 #define PLAY_WITH_AI 1
 
@@ -525,5 +525,82 @@ namespace Sonar
 	}
 	void GameState::Evolve()
 	{
+		//Initialize mating pool
+		std::vector<Bird*> matingPool = std::vector<Bird*>();
+		//Initialize output population
+		std::vector<Bird*> output = std::vector<Bird*>();
+
+		//Elitist selection
+		output.push_back(birds.at(0));
+
+		//Tournament selection
+		while (matingPool.size() < MATING_POOL_SIZE)
+		{
+			//Select a couple birds at random, and pick the best one
+			std::list<Bird*> selectionGroup = std::list<Bird*>();
+			for (int i = 0; i < SELECTION_GROUP_SIZE; i++)
+			{
+				//Get random gene, add to selection group
+				int randomIndex = rand() % birds.size();
+				selectionGroup.push_back(birds.at(randomIndex));
+			}
+			selectionGroup.sort(Bird::BirdComparison);
+			matingPool.push_back(*selectionGroup.begin());
+		}
+
+		//The mating pool has now been created, so perform crossover
+
+		//Create offspring until output population is full
+		while (output.size() < POPULATION_SIZE)
+		{
+			//Pick 2 parents from the input population
+			Bird* parent1;
+			Bird* parent2;
+			int parent1Index = rand() % matingPool.size();
+			parent1 = matingPool.at(parent1Index);
+
+			//Ensuring that the second parent is not the same as first parent
+			int parent2Index = parent1Index;
+			while (parent1Index == parent2Index)
+				parent2Index = rand() % matingPool.size();
+			parent2 = matingPool.at(parent2Index);
+			output.push_back(Crossover(parent1, parent2));
+		}
+
+
+		//Delete old birds
+		for (int i = 1; i < birds.size(); i++)
+		{
+			if (birds.at(i) != nullptr)
+				delete birds.at(i);
+		}
+		birds.clear();
+
+		birds = output;
+	}
+	Bird* GameState::Crossover(Bird* parent1, Bird* parent2)
+	{
+		//iterate layers
+		for (int i = 0; i < parent1->nodeNetwork.size(); i++)
+		{
+			//input layer
+			if (i == 0)
+			{
+				//iterate nodes
+				for (int j = 0; j < parent1->nodeNetwork.at(i).size(); j++)
+				{
+
+				}
+			}
+			//Hidden layers
+			else 
+			{
+				//iterate nodes
+				for (int j = 0; j < parent1->nodeNetwork.at(i).size(); j++)
+				{
+
+				}
+			}
+		}
 	}
 }

@@ -134,7 +134,7 @@ namespace Sonar
 			{
 				nodeNetwork.at(i).at(2)->AddInput(distanceToGround);
 				currentSum += nodeNetwork.at(i).at(2)->GenerateOutput();
-				nodeNetwork.at(i).at(3)->AddInput(distanceToGround);
+				nodeNetwork.at(i).at(3)->AddInput(distanceToTop);
 				currentSum += nodeNetwork.at(i).at(3)->GenerateOutput();
 			}
 			//Hidden layers
@@ -180,7 +180,7 @@ namespace Sonar
 				currentSum += nodeNetwork.at(i).at(1)->GenerateOutput();
 				nodeNetwork.at(i).at(2)->AddInput(distanceToGround);
 				currentSum += nodeNetwork.at(i).at(2)->GenerateOutput();
-				nodeNetwork.at(i).at(3)->AddInput(distanceToGround);
+				nodeNetwork.at(i).at(3)->AddInput(distanceToTop);
 				currentSum += nodeNetwork.at(i).at(3)->GenerateOutput();
 			}
 			//Hidden layers
