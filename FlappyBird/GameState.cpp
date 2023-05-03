@@ -8,12 +8,15 @@
 
 #include <iostream>
 
+#define REPLAY true
+
 #define PLAY_WITH_AI 1
 
 namespace Sonar
 {
 	GameState::GameState(GameDataRef data) : _data(data)
 	{
+		initialized = false;
 		m_pAIController = new AIController();
 		m_pAIController->setGameState(this);
 	}
@@ -72,29 +75,57 @@ namespace Sonar
 
 		pipe = new Pipe(_data);
 		land = new Land(_data);
-		for (int i = 0; i < POPULATION_SIZE; i++)
-		{
-			//Initialize the genetic data of the bird to a network of nodes
-			std::vector<std::vector<Node*>> nodeNetwork = std::vector<std::vector<Node*>>();
 
-			std::vector<Node*> inputNodes = std::vector<Node*>();
-			for (int i = 0; i < 3; i++)
-			{
-				inputNodes.push_back(new InputNode());
-			}
-			nodeNetwork.push_back(inputNodes);
-			for (int i = 0; i < HIDDEN_LAYERS; i++)
-			{
-				std::vector<Node*> layer = std::vector<Node*>();
-				for (int j = 0; j < NODES_PER_LAYER; j++)
-				{
-					layer.push_back(new ActivationNode());
-				}
-				nodeNetwork.push_back(layer);
-			}
-			
-			birds.push_back(new Bird(_data, nodeNetwork));
+		std::string epochDirectory = "epochs/";
+		json populationData;
+		generationNumber = -1;
+
+		while (true)
+		{
+			std::ifstream epochFile(epochDirectory + "epoch" + std::to_string(generationNumber + 1) + ".json");
+			if (!epochFile.good())
+				break; //File doesn't exist, end here
+			populationData = json::parse(epochFile);
+			generationNumber++;
 		}
+		//If this is the first generation, create pop0
+		if (generationNumber == -1)
+		{
+			generationNumber++;
+			for (int i = 0; i < POPULATION_SIZE; i++)
+			{
+				//Initialize the genetic data of the bird to a network of nodes
+				std::vector<std::vector<Node*>> nodeNetwork = std::vector<std::vector<Node*>>();
+
+				std::vector<Node*> inputNodes = std::vector<Node*>();
+				for (int i = 0; i < 4; i++)
+				{
+					inputNodes.push_back(new InputNode());
+				}
+				nodeNetwork.push_back(inputNodes);
+				for (int i = 0; i < HIDDEN_LAYERS; i++)
+				{
+					std::vector<Node*> layer = std::vector<Node*>();
+					for (int j = 0; j < NODES_PER_LAYER; j++)
+					{
+						layer.push_back(new ActivationNode());
+					}
+					nodeNetwork.push_back(layer);
+				}
+
+				birds.push_back(new Bird(_data, nodeNetwork));
+			}
+		}
+		else
+		{
+			ImportBirds(populationData);
+			#if REPLAY == false
+			Evolve();
+			generationNumber++;
+			#endif
+		}
+
+
 		flash = new Flash(_data);
 		hud = new HUD(_data);
 
@@ -103,6 +134,7 @@ namespace Sonar
 		_score = 0;
 		hud->UpdateScore(_score);
 
+		initialized = true;
 		_gameState = GameStates::eReady;
 	}
 
@@ -226,16 +258,28 @@ namespace Sonar
 				}
 			}
 			//Find game over
-			bool dead = true;
-			for (auto bird : birds)
-			{
-				if (bird->isAlive)
-					dead = false;
-			}
-			if (dead)
-			{
-				_gameState = GameStates::eGameOver;
-				clock.restart();
+			if (initialized) {
+				bool dead = true;
+				for (auto bird : birds)
+				{
+					if (bird->isAlive)
+						dead = false;
+				}
+				if (dead)
+				{
+					if (generationNumber == 0)
+					{
+						ExportBirds();
+					}
+					else
+					{
+						#if REPLAY == false
+						ExportBirds();
+						#endif
+					}
+					_gameState = GameStates::eGameOver;
+					clock.restart();
+				}
 			}
 
 			if (GameStates::ePlaying == _gameState)
@@ -297,5 +341,63 @@ namespace Sonar
 		hud->Draw();
 
 		this->_data->window.display();
+	}
+	void GameState::ExportBirds()
+	{
+		std::list<Bird*> populationAsList = std::list<Bird*>(birds.begin(), birds.end());
+		populationAsList.sort(Bird::BirdComparison);
+		birds = std::vector<Bird*>(populationAsList.begin(), populationAsList.end());
+
+		std::string epochDirectory = "epochs/";
+		json populationData;
+
+		//iterate birds
+		for (int i = 0; i < birds.size(); i++) 
+		{
+			json geneData;
+			geneData["Score"] = birds.at(i)->score;
+			//Iterate layers
+			for (int j = 0; j < birds.at(i)->nodeNetwork.size(); j++)
+			{
+				json layerData;
+				//Input Layer
+				if (j == 0)
+				{
+					//iterate nodes
+					for (int k = 0; k < birds.at(i)->nodeNetwork.at(j).size(); k++)
+					{
+						InputNode* node = static_cast<InputNode*>(birds.at(i)->nodeNetwork.at(j).at(k));
+						layerData["Weights"].push_back(node->weight);
+					}
+					geneData["InputLayer"].push_back(layerData);
+				}
+				//Hidden Layers
+				else
+				{
+					json layerData;
+					//Iterate nodes
+					for (int k = 0; k < birds.at(i)->nodeNetwork.at(j).size(); k++)
+					{
+						ActivationNode* node = static_cast<ActivationNode*>(birds.at(i)->nodeNetwork.at(j).at(k));
+						
+						layerData["Weights"].push_back(node->weight);
+						layerData["Biases"].push_back(node->bias);
+					}
+					geneData["Layer" + std::to_string(j)] = layerData;
+				}
+			}
+			populationData["Gene" + std::to_string(i + 1)] = geneData;
+		}
+		//Write the json data to the file
+		std::ofstream outputFile(epochDirectory + "epoch" + std::to_string(generationNumber) + ".json");
+		if (!outputFile.good())
+			return;
+		outputFile << std::setw(4) << populationData;
+	}
+	void GameState::ImportBirds(json populationData)
+	{
+	}
+	void GameState::Evolve()
+	{
 	}
 }

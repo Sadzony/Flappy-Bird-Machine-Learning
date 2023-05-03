@@ -17,6 +17,7 @@ public:
 public:
 
 private:
+	float distanceToTop(Bird* bird);
 	float distanceToFloor(Land* land, Bird* bird);
 	float distanceToNearestPipes(Pipe* pipe, Bird* bird);
 	float distanceToCentreOfPipeGap(Pipe* pipe, Bird* bird);

@@ -2,6 +2,8 @@
 
 #include <SFML/Graphics.hpp>
 #include <SFML/Audio.hpp>
+#include <fstream>
+#include <string>
 
 #include "State.hpp"
 #include "Game.hpp"
@@ -11,6 +13,10 @@
 #include "Collision.hpp"
 #include "Flash.hpp"
 #include "HUD.hpp"
+
+//library for json files, namepspace definition
+#include "nlohmann/json.hpp"
+using json = nlohmann::json;
 
 class AIController;
 
@@ -33,6 +39,14 @@ namespace Sonar
 		std::vector<Bird*> GetBirds() { return birds; }
 
 	private:
+		//Saves the bird list to a json file
+		void ExportBirds();
+		//Imports the bird list from a json file
+		void ImportBirds(json populationData);
+		
+		//Evolves the bird list and creates the next generation
+		void Evolve();
+
 		GameDataRef _data;
 
 		sf::Sprite _background;
@@ -54,6 +68,8 @@ namespace Sonar
 
 		int _score;
 
+		int generationNumber = -1;
+
 		sf::SoundBuffer _hitSoundBuffer;
 		sf::SoundBuffer _wingSoundBuffer;
 		sf::SoundBuffer _pointSoundBuffer;
@@ -63,5 +79,7 @@ namespace Sonar
 		sf::Sound _pointSound;
 
 		AIController* m_pAIController;
+
+		bool initialized = false;
 	};
 }

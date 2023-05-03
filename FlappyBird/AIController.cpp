@@ -30,6 +30,9 @@ void AIController::update(Bird* p_bird)
 	Bird* bird = p_bird;
 
 	// do some AI stuff, decide whether to flap
+
+	float fDistanceToTop = distanceToTop(bird);
+
 	float fDistanceToFloor = distanceToFloor(land, bird);
 
 	float fDistanceToNearestPipe = distanceToNearestPipes(pipe, bird);
@@ -38,15 +41,20 @@ void AIController::update(Bird* p_bird)
 
 	float fDistanceToCentreOfGap = distanceToCentreOfPipeGap(pipe, bird);
 
-	if (fDistanceToNearestPipe != ERROR_DISTANCE && fDistanceToNearestPipe != ERROR_DISTANCE) {
+	if (fDistanceToNearestPipe == ERROR_DISTANCE || fDistanceToNearestPipe == ERROR_DISTANCE) {
 		
-		m_bShouldFlap = bird->FindShouldFlap(fDistanceToNearestPipe, fDistanceToCentreOfGap, fDistanceToFloor);
+		m_bShouldFlap = bird->FindShouldFlap(fDistanceToNearestPipe, fDistanceToCentreOfGap, fDistanceToFloor, fDistanceToTop);
 	}
 	else {
-		m_bShouldFlap = bird->FindShouldFlap(fDistanceToFloor);
+		m_bShouldFlap = bird->FindShouldFlap(fDistanceToFloor, fDistanceToTop);
 	}
 
 	return;
+}
+
+float AIController::distanceToTop(Bird* bird)
+{
+	return bird->GetSprite().getPosition().y;
 }
 
 float AIController::distanceToFloor(Land* land, Bird* bird)

@@ -122,7 +122,7 @@ namespace Sonar
 		y = (int)v.y;
 	}
 
-	bool Bird::FindShouldFlap(float distanceToGround)
+	bool Bird::FindShouldFlap(float distanceToGround, float distanceToTop)
 	{
 		OutputNode output = OutputNode();
 		float lastSum = 0;
@@ -134,6 +134,8 @@ namespace Sonar
 			{
 				nodeNetwork.at(i).at(2)->AddInput(distanceToGround);
 				currentSum += nodeNetwork.at(i).at(2)->GenerateOutput();
+				nodeNetwork.at(i).at(3)->AddInput(distanceToGround);
+				currentSum += nodeNetwork.at(i).at(3)->GenerateOutput();
 			}
 			//Hidden layers
 			else
@@ -162,7 +164,7 @@ namespace Sonar
 		}
 	}
 
-	bool Bird::FindShouldFlap(float distanceToPipe, float distanceToCentreOfPipe, float distanceToGround)
+	bool Bird::FindShouldFlap(float distanceToPipe, float distanceToCentreOfPipe, float distanceToGround, float distanceToTop)
 	{
 		OutputNode output = OutputNode();
 		float lastSum = 0;
@@ -178,6 +180,8 @@ namespace Sonar
 				currentSum += nodeNetwork.at(i).at(1)->GenerateOutput();
 				nodeNetwork.at(i).at(2)->AddInput(distanceToGround);
 				currentSum += nodeNetwork.at(i).at(2)->GenerateOutput();
+				nodeNetwork.at(i).at(3)->AddInput(distanceToGround);
+				currentSum += nodeNetwork.at(i).at(3)->GenerateOutput();
 			}
 			//Hidden layers
 			else 

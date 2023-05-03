@@ -24,7 +24,6 @@ public:
 	
 	float GenerateOutput() override;
 
-protected:
 	float weight = 0;
 };
 
@@ -37,7 +36,6 @@ public:
 
 	float GenerateOutput() override;
 
-protected:
 	float weight = 0;
 	float bias = 0;
 };

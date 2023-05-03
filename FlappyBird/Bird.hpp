@@ -28,11 +28,20 @@ namespace Sonar
 
 		void getHeight(int& x, int& y);
 
-		bool FindShouldFlap(float distanceToGround);
-		bool FindShouldFlap(float distanceToPipe, float distanceToCentreOfPipe, float distanceToGround);
+		bool FindShouldFlap(float distanceToGround, float distanceToTop);
+		bool FindShouldFlap(float distanceToPipe, float distanceToCentreOfPipe, float distanceToGround, float distanceToTop);
 
 		int score = 0;
 		bool isAlive = true;
+
+
+		//Comparison function used for sorting
+		static bool BirdComparison(const Bird* first, const Bird* second)
+		{
+			return (first->score > second->score);
+		}
+
+		std::vector<std::vector<Node*>> nodeNetwork;
 
 	private:
 		GameDataRef _data;
@@ -50,6 +59,6 @@ namespace Sonar
 
 		float _rotation;
 
-		std::vector<std::vector<Node*>> nodeNetwork;
+		
 	};
 }

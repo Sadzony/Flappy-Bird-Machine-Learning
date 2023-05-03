@@ -1,13 +1,6 @@
-﻿  AIController.cpp
-  Bird.cpp
-C:\Users\szymo\Documents\Development\Programming\Flappy-Bird-Machine-Learning\FlappyBird\Bird.cpp(129,21): warning C4018: '<': signed/unsigned mismatch
-C:\Users\szymo\Documents\Development\Programming\Flappy-Bird-Machine-Learning\FlappyBird\Bird.cpp(141,23): warning C4018: '<': signed/unsigned mismatch
-C:\Users\szymo\Documents\Development\Programming\Flappy-Bird-Machine-Learning\FlappyBird\Bird.cpp(149,22): warning C4018: '<': signed/unsigned mismatch
-C:\Users\szymo\Documents\Development\Programming\Flappy-Bird-Machine-Learning\FlappyBird\Bird.cpp(169,21): warning C4018: '<': signed/unsigned mismatch
-C:\Users\szymo\Documents\Development\Programming\Flappy-Bird-Machine-Learning\FlappyBird\Bird.cpp(185,23): warning C4018: '<': signed/unsigned mismatch
-C:\Users\szymo\Documents\Development\Programming\Flappy-Bird-Machine-Learning\FlappyBird\Bird.cpp(193,22): warning C4018: '<': signed/unsigned mismatch
-  GameOverState.cpp
-  GameState.cpp
-  MainMenuState.cpp
-  Generating Code...
+﻿  GameState.cpp
+C:\Users\szymo\Documents\Development\Programming\Flappy-Bird-Machine-Learning\FlappyBird\GameState.cpp(355,21): warning C4018: '<': signed/unsigned mismatch
+C:\Users\szymo\Documents\Development\Programming\Flappy-Bird-Machine-Learning\FlappyBird\GameState.cpp(360,22): warning C4018: '<': signed/unsigned mismatch
+C:\Users\szymo\Documents\Development\Programming\Flappy-Bird-Machine-Learning\FlappyBird\GameState.cpp(367,24): warning C4018: '<': signed/unsigned mismatch
+C:\Users\szymo\Documents\Development\Programming\Flappy-Bird-Machine-Learning\FlappyBird\GameState.cpp(379,24): warning C4018: '<': signed/unsigned mismatch
   FlappyBird.vcxproj -> C:\Users\szymo\Documents\Development\Programming\Flappy-Bird-Machine-Learning\Debug\FlappyBird.exe
