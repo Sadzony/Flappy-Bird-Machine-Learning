@@ -94,15 +94,15 @@ namespace Sonar
 			generationNumber++;
 			for (int i = 0; i < POPULATION_SIZE; i++)
 			{
-				//Initialize the genetic data of the bird to a network of nodes
-				std::vector<std::vector<Node*>> nodeNetwork = std::vector<std::vector<Node*>>();
+				//Initialize the bird with random gene data
+				std::vector<std::vector<Node*>> _nodeNetwork = std::vector<std::vector<Node*>>();
 
 				std::vector<Node*> inputNodes = std::vector<Node*>();
 				for (int i = 0; i < 4; i++)
 				{
 					inputNodes.push_back(new InputNode());
 				}
-				nodeNetwork.push_back(inputNodes);
+				_nodeNetwork.push_back(inputNodes);
 				for (int i = 0; i < HIDDEN_LAYERS; i++)
 				{
 					std::vector<Node*> layer = std::vector<Node*>();
@@ -110,19 +110,23 @@ namespace Sonar
 					{
 						layer.push_back(new ActivationNode());
 					}
-					nodeNetwork.push_back(layer);
+					_nodeNetwork.push_back(layer);
 				}
-
-				birds.push_back(new Bird(_data, nodeNetwork));
+				birds.push_back(new Bird(_data, _nodeNetwork));
 			}
 		}
 		else
 		{
-			ImportBirds(populationData);
+			ImportBirds(_data, populationData);
 			#if REPLAY == false
 			Evolve();
 			generationNumber++;
 			#endif
+			//Reset the imported score to 0
+			for (auto bird : birds)
+			{
+				bird->score = 0;
+			}
 		}
 
 
@@ -366,10 +370,12 @@ namespace Sonar
 					//iterate nodes
 					for (int k = 0; k < birds.at(i)->nodeNetwork.at(j).size(); k++)
 					{
+						json nodeData;
 						InputNode* node = static_cast<InputNode*>(birds.at(i)->nodeNetwork.at(j).at(k));
-						layerData["Weights"].push_back(node->weight);
+						nodeData["Weight"] = node->weight;
+						layerData["Node" + std::to_string(k)] = nodeData;
 					}
-					geneData["InputLayer"].push_back(layerData);
+					geneData["InputLayer"] = layerData;
 				}
 				//Hidden Layers
 				else
@@ -378,10 +384,12 @@ namespace Sonar
 					//Iterate nodes
 					for (int k = 0; k < birds.at(i)->nodeNetwork.at(j).size(); k++)
 					{
+						json nodeData;
 						ActivationNode* node = static_cast<ActivationNode*>(birds.at(i)->nodeNetwork.at(j).at(k));
 						
-						layerData["Weights"].push_back(node->weight);
-						layerData["Biases"].push_back(node->bias);
+						nodeData["Weight"] = node->weight;
+						nodeData["Bias"] = node->bias;
+						layerData["Node" + std::to_string(k)] = nodeData;
 					}
 					geneData["Layer" + std::to_string(j)] = layerData;
 				}
@@ -394,8 +402,126 @@ namespace Sonar
 			return;
 		outputFile << std::setw(4) << populationData;
 	}
-	void GameState::ImportBirds(json populationData)
+	void GameState::ImportBirds(GameDataRef data, json populationData)
 	{
+		std::vector<Bird*> loadedBirds = std::vector<Bird*>();
+
+		int geneIteration = 0;
+		//iterate genes. Each iteration is a bird
+		for (const auto& gene : populationData.items())
+		{
+			//Break if loading more than population count
+			if (geneIteration >= POPULATION_SIZE)
+				break;
+
+			int score = 0;
+			std::vector<std::vector<Node*>> nodeNetwork = std::vector<std::vector<Node*>>();
+
+			int layerIteration = 0;
+			for (const auto& geneData : gene.value().items())
+			{
+				if (geneData.key() == "Score")
+					score = geneData.value();
+				else if (geneData.key() == "InputLayer")
+				{
+					std::vector<Node*> layer = std::vector<Node*>();
+					int nodeIteration = 0;
+					for (const auto& layerData : geneData.value().items())
+					{
+						std::string key = layerData.key();
+						if (layerData.key() == "Node" + std::to_string(nodeIteration))
+						{
+							float weight = 0;
+							for (const auto& nodeData : layerData.value().items())
+							{
+								if (nodeData.key() == "Weight")
+									weight = nodeData.value();
+							}
+							layer.push_back(new InputNode(weight));
+						}
+						nodeIteration++;
+					}
+					nodeNetwork.push_back(layer);
+					layerIteration++;
+				}
+				else if (geneData.key() == "Layer" + std::to_string(layerIteration))
+				{
+					//Break if there are more layers being loaded
+					if (layerIteration >= HIDDEN_LAYERS + 1)
+						break;
+					std::vector<Node*> layer = std::vector<Node*>();
+					int nodeIteration = 0;
+					for (const auto& layerData : geneData.value().items())
+					{
+						std::string key = layerData.key();
+						//break if more nodes are being loaded
+						if (nodeIteration >= NODES_PER_LAYER)
+							break;
+						if (layerData.key() == "Node" + std::to_string(nodeIteration))
+						{
+							float weight = 0;
+							float bias = 0;
+							for (const auto& nodeData : layerData.value().items())
+							{
+								std::string key = nodeData.key();
+								if (nodeData.key() == "Weight")
+									weight = nodeData.value();
+								else if (nodeData.key() == "Bias")
+									bias = nodeData.value();
+							}
+							layer.push_back(new ActivationNode(weight, bias));
+						}
+						nodeIteration++;
+					}
+					//Initialize remaining nodes, if there are less than specified
+					for (int i = layer.size(); i < NODES_PER_LAYER; i++)
+						layer.push_back(new ActivationNode());
+
+					nodeNetwork.push_back(layer);
+					layerIteration++;
+				}
+			}
+			//Initialize remaining layers, if there are less than specified
+			for (int i = nodeNetwork.size(); i < HIDDEN_LAYERS + 1; i++)
+			{
+				std::vector<Node*> layer = std::vector<Node*>();
+				for (int j = 0; j < NODES_PER_LAYER; j++)
+				{
+					layer.push_back(new ActivationNode());
+				}
+				nodeNetwork.push_back(layer);
+			}
+
+			Bird* nextBird = new Bird(data, nodeNetwork);
+			nextBird->score = score;
+			loadedBirds.push_back(nextBird);
+			geneIteration++;
+		}
+		//Initialize remaining birds to random, if loaded birds are less than pop size
+		for (int i = loadedBirds.size(); i < POPULATION_SIZE; i++)
+		{
+			//Initialize the bird with random gene data
+			std::vector<std::vector<Node*>> _nodeNetwork = std::vector<std::vector<Node*>>();
+
+			std::vector<Node*> inputNodes = std::vector<Node*>();
+			for (int i = 0; i < 4; i++)
+			{
+				inputNodes.push_back(new InputNode());
+			}
+			_nodeNetwork.push_back(inputNodes);
+			for (int i = 0; i < HIDDEN_LAYERS; i++)
+			{
+				std::vector<Node*> layer = std::vector<Node*>();
+				for (int j = 0; j < NODES_PER_LAYER; j++)
+				{
+					layer.push_back(new ActivationNode());
+				}
+				_nodeNetwork.push_back(layer);
+			}
+			loadedBirds.push_back(new Bird(data, _nodeNetwork));
+		}
+
+		birds = loadedBirds;
 	}
 	void GameState::Evolve()
 	{

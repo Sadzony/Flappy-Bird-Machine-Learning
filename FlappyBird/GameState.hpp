@@ -42,7 +42,7 @@ namespace Sonar
 		//Saves the bird list to a json file
 		void ExportBirds();
 		//Imports the bird list from a json file
-		void ImportBirds(json populationData);
+		void ImportBirds(GameDataRef data, json populationData);
 		
 		//Evolves the bird list and creates the next generation
 		void Evolve();
