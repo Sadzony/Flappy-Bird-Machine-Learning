@@ -34,14 +34,21 @@ ActivationNode::ActivationNode()
 
 float ActivationNode::GenerateOutput()
 {
-	//Apply TanH or ReLU function to the sum
+	//add bias
+	float val = sum + bias;
+	//Apply TanH or ReLU function 
+	val = std::tanh(val);
 
-	return (sum + bias) * weight;
+	return val * weight;
 }
 
 float OutputNode::GenerateOutput()
 {
-	//Apply binary step function to the sum
-
+	float val = sum;
+	//Apply binary step function. (-1 = false, 1 = true)
+	if (val <= 0)
+		val = -1;
+	else if (val > 0)
+		val = 1;
 	return sum;
 }

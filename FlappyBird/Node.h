@@ -9,7 +9,7 @@ public:
 
 	virtual float GenerateOutput();
 
-	void ResetSum() { sum = 0; }
+	void ClearValue() { sum = 0; }
 
 protected:
 	float sum = 0;

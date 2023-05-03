@@ -28,6 +28,9 @@ namespace Sonar
 
 		void getHeight(int& x, int& y);
 
+		bool FindShouldFlap(float distanceToGround);
+		bool FindShouldFlap(float distanceToPipe, float distanceToCentreOfPipe, float distanceToGround);
+
 		int score = 0;
 		bool isAlive = true;
 

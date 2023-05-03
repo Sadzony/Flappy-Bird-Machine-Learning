@@ -121,4 +121,88 @@ namespace Sonar
 		x = (int)v.x;
 		y = (int)v.y;
 	}
+
+	bool Bird::FindShouldFlap(float distanceToGround)
+	{
+		OutputNode output = OutputNode();
+		float lastSum = 0;
+		for (int i = 0; i < nodeNetwork.size(); i++)
+		{
+			float currentSum = 0;
+			//Input layer
+			if (i == 0)
+			{
+				nodeNetwork.at(i).at(2)->AddInput(distanceToGround);
+				currentSum += nodeNetwork.at(i).at(2)->GenerateOutput();
+			}
+			//Hidden layers
+			else
+			{
+				for (int j = 0; j < nodeNetwork.at(i).size(); j++)
+				{
+					nodeNetwork.at(i).at(j)->AddInput(lastSum);
+					currentSum += nodeNetwork.at(i).at(j)->GenerateOutput();
+				}
+			}
+			lastSum = currentSum;
+			//Clear values for next update
+			for (int j = 0; j < nodeNetwork.at(i).size(); j++)
+			{
+				nodeNetwork.at(i).at(j)->ClearValue();
+			}
+		}
+		output.AddInput(lastSum);
+		float val = output.GenerateOutput();
+		if (val < 0)
+		{
+			return false;
+		}
+		else {
+			return true;
+		}
+	}
+
+	bool Bird::FindShouldFlap(float distanceToPipe, float distanceToCentreOfPipe, float distanceToGround)
+	{
+		OutputNode output = OutputNode();
+		float lastSum = 0;
+		for (int i = 0; i < nodeNetwork.size(); i++)
+		{
+			float currentSum = 0;
+			//Input layer
+			if (i == 0)
+			{
+				nodeNetwork.at(i).at(0)->AddInput(distanceToPipe);
+				currentSum += nodeNetwork.at(i).at(0)->GenerateOutput();
+				nodeNetwork.at(i).at(1)->AddInput(distanceToCentreOfPipe);
+				currentSum += nodeNetwork.at(i).at(1)->GenerateOutput();
+				nodeNetwork.at(i).at(2)->AddInput(distanceToGround);
+				currentSum += nodeNetwork.at(i).at(2)->GenerateOutput();
+			}
+			//Hidden layers
+			else 
+			{
+				for (int j = 0; j < nodeNetwork.at(i).size(); j++)
+				{
+					nodeNetwork.at(i).at(j)->AddInput(lastSum);
+					currentSum += nodeNetwork.at(i).at(j)->GenerateOutput();
+				}
+			}
+			lastSum = currentSum;
+			//Clear values for next update
+			for (int j = 0; j < nodeNetwork.at(i).size(); j++)
+			{
+				nodeNetwork.at(i).at(j)->ClearValue();
+			}
+		}
+		output.AddInput(lastSum);
+		float val = output.GenerateOutput();
+		if (val < 0)
+		{
+			return false;
+		}
+		else {
+			return true;
+		}
+	}
 }
