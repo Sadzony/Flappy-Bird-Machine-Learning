@@ -41,13 +41,15 @@ void AIController::update(Bird* p_bird)
 
 	float fDistanceToCentreOfGap = distanceToCentreOfPipeGap(pipe, bird);
 
-	if (fDistanceToNearestPipe == ERROR_DISTANCE || fDistanceToNearestPipe == ERROR_DISTANCE) {
-		
-		m_bShouldFlap = bird->FindShouldFlap(fDistanceToNearestPipe, fDistanceToCentreOfGap, fDistanceToFloor, fDistanceToTop);
-	}
-	else {
-		m_bShouldFlap = bird->FindShouldFlap(fDistanceToFloor, fDistanceToTop);
-	}
+	m_bShouldFlap = bird->FindShouldFlap(fDistanceToNearestPipe, fDistanceToCentreOfGap, fDistanceToFloor, fDistanceToTop);
+
+	//if (fDistanceToNearestPipe == ERROR_DISTANCE || fDistanceToNearestPipe == ERROR_DISTANCE) {
+	//	
+	//	m_bShouldFlap = bird->FindShouldFlap(fDistanceToNearestPipe, fDistanceToCentreOfGap, fDistanceToFloor, fDistanceToTop);
+	//}
+	//else {
+	//	m_bShouldFlap = bird->FindShouldFlap(fDistanceToFloor, fDistanceToTop);
+	//}
 
 	return;
 }

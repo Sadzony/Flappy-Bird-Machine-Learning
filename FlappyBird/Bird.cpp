@@ -125,35 +125,39 @@ namespace Sonar
 	bool Bird::FindShouldFlap(float distanceToGround, float distanceToTop)
 	{
 		OutputNode output = OutputNode();
-		float lastSum = 0;
 		for (int i = 0; i < nodeNetwork.size(); i++)
 		{
-			float currentSum = 0;
-			//Input layer
+			//Input layer receives inputs from the game
 			if (i == 0)
 			{
 				nodeNetwork.at(i).at(2)->AddInput(distanceToGround);
-				currentSum += nodeNetwork.at(i).at(2)->GenerateOutput();
-				nodeNetwork.at(i).at(3)->AddInput(distanceToTop);
-				currentSum += nodeNetwork.at(i).at(3)->GenerateOutput();
+				//nodeNetwork.at(i).at(3)->AddInput(distanceToTop);
 			}
-			//Hidden layers
-			else
+
+			//iterate nodes on current layer
+			for (int j = 0; j < nodeNetwork.at(i).size(); j++)
 			{
-				for (int j = 0; j < nodeNetwork.at(i).size(); j++)
+				//if last layer, send the output to the output node
+				if (nodeNetwork.at(i).at(j)->lastLayer)
 				{
-					nodeNetwork.at(i).at(j)->AddInput(lastSum);
-					currentSum += nodeNetwork.at(i).at(j)->GenerateOutput();
+					output.AddInput(nodeNetwork.at(i).at(j)->GenerateOutput());
+				}
+				//otherwise, iterate nodes in next layer, generating outputs for a particular node
+				else
+				{
+					for (int k = 0; k < nodeNetwork.at(i + 1).size(); k++)
+					{
+						nodeNetwork.at(i + 1).at(k)->AddInput(nodeNetwork.at(i).at(j)->GenerateOutput(k));
+					}
 				}
 			}
-			lastSum = currentSum;
+
 			//Clear values for next update
 			for (int j = 0; j < nodeNetwork.at(i).size(); j++)
 			{
 				nodeNetwork.at(i).at(j)->ClearValue();
 			}
 		}
-		output.AddInput(lastSum);
 		float val = output.GenerateOutput();
 		if (val < 0)
 		{
@@ -167,39 +171,41 @@ namespace Sonar
 	bool Bird::FindShouldFlap(float distanceToPipe, float distanceToCentreOfPipe, float distanceToGround, float distanceToTop)
 	{
 		OutputNode output = OutputNode();
-		float lastSum = 0;
 		for (int i = 0; i < nodeNetwork.size(); i++)
 		{
-			float currentSum = 0;
-			//Input layer
+			//Input layer receives inputs from the game
 			if (i == 0)
 			{
 				nodeNetwork.at(i).at(0)->AddInput(distanceToPipe);
-				currentSum += nodeNetwork.at(i).at(0)->GenerateOutput();
 				nodeNetwork.at(i).at(1)->AddInput(distanceToCentreOfPipe);
-				currentSum += nodeNetwork.at(i).at(1)->GenerateOutput();
 				nodeNetwork.at(i).at(2)->AddInput(distanceToGround);
-				currentSum += nodeNetwork.at(i).at(2)->GenerateOutput();
-				nodeNetwork.at(i).at(3)->AddInput(distanceToTop);
-				currentSum += nodeNetwork.at(i).at(3)->GenerateOutput();
+				//nodeNetwork.at(i).at(3)->AddInput(distanceToTop);
 			}
-			//Hidden layers
-			else 
+
+			//iterate nodes on current layer
+			for (int j = 0; j < nodeNetwork.at(i).size(); j++)
 			{
-				for (int j = 0; j < nodeNetwork.at(i).size(); j++)
+				//if last layer, send the output to the output node
+				if (nodeNetwork.at(i).at(j)->lastLayer)
 				{
-					nodeNetwork.at(i).at(j)->AddInput(lastSum);
-					currentSum += nodeNetwork.at(i).at(j)->GenerateOutput();
+					output.AddInput(nodeNetwork.at(i).at(j)->GenerateOutput());
+				}
+				//otherwise, iterate nodes in next layer, generating outputs for a particular node
+				else
+				{
+					for (int k = 0; k < nodeNetwork.at(i + 1).size(); k++)
+					{
+						nodeNetwork.at(i + 1).at(k)->AddInput(nodeNetwork.at(i).at(j)->GenerateOutput(k));
+					}
 				}
 			}
-			lastSum = currentSum;
+
 			//Clear values for next update
 			for (int j = 0; j < nodeNetwork.at(i).size(); j++)
 			{
 				nodeNetwork.at(i).at(j)->ClearValue();
 			}
 		}
-		output.AddInput(lastSum);
 		float val = output.GenerateOutput();
 		if (val < 0)
 		{

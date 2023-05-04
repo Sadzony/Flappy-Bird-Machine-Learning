@@ -8,7 +8,7 @@
 
 #include <iostream>
 
-#define REPLAY false
+#define REPLAY true
 
 #define PLAY_WITH_AI 1
 
@@ -98,9 +98,12 @@ namespace Sonar
 				std::vector<std::vector<Node*>> _nodeNetwork = std::vector<std::vector<Node*>>();
 
 				std::vector<Node*> inputNodes = std::vector<Node*>();
-				for (int i = 0; i < 4; i++)
+				for (int i = 0; i < 3; i++)
 				{
-					inputNodes.push_back(new InputNode());
+					if(HIDDEN_LAYERS == 0)
+						inputNodes.push_back(new InputNode(true));
+					else
+						inputNodes.push_back(new InputNode(false));
 				}
 				_nodeNetwork.push_back(inputNodes);
 				for (int i = 0; i < HIDDEN_LAYERS; i++)
@@ -108,7 +111,10 @@ namespace Sonar
 					std::vector<Node*> layer = std::vector<Node*>();
 					for (int j = 0; j < NODES_PER_LAYER; j++)
 					{
-						layer.push_back(new ActivationNode());
+						if(i == HIDDEN_LAYERS - 1)
+							layer.push_back(new ActivationNode(true));
+						else
+							layer.push_back(new ActivationNode(false));
 					}
 					_nodeNetwork.push_back(layer);
 				}
@@ -372,7 +378,12 @@ namespace Sonar
 					{
 						json nodeData;
 						InputNode* node = static_cast<InputNode*>(birds.at(i)->nodeNetwork.at(j).at(k));
-						nodeData["Weight"] = node->weight;
+						//iterate weights
+						for (int l = 0; l < node->weights.size(); l++)
+						{
+							nodeData["Weights"].push_back(node->weights.at(l));
+						}
+						nodeData["isLast"] = node->lastLayer;
 						layerData["Node" + std::to_string(k)] = nodeData;
 					}
 					geneData["InputLayer"] = layerData;
@@ -386,9 +397,13 @@ namespace Sonar
 					{
 						json nodeData;
 						ActivationNode* node = static_cast<ActivationNode*>(birds.at(i)->nodeNetwork.at(j).at(k));
-						
-						nodeData["Weight"] = node->weight;
+						//iterate weights
+						for (int l = 0; l < node->weights.size(); l++)
+						{
+							nodeData["Weights"].push_back(node->weights.at(l));
+						}
 						nodeData["Bias"] = node->bias;
+						nodeData["isLast"] = node->lastLayer;
 						layerData["Node" + std::to_string(k)] = nodeData;
 					}
 					geneData["Layer" + std::to_string(j)] = layerData;
@@ -431,13 +446,24 @@ namespace Sonar
 						std::string key = layerData.key();
 						if (layerData.key() == "Node" + std::to_string(nodeIteration))
 						{
-							float weight = 0;
+							std::vector<float> weights = std::vector<float>();
+							bool isLast;
 							for (const auto& nodeData : layerData.value().items())
 							{
-								if (nodeData.key() == "Weight")
-									weight = nodeData.value();
+								if (nodeData.key() == "Weights")
+								{
+									for (const auto& weightData : nodeData.value().items())
+									{
+										weights.push_back(weightData.value());
+									}
+								}
+								else if (nodeData.key() == "isLast")
+									isLast = nodeData.value();
 							}
-							layer.push_back(new InputNode(weight));
+							if(HIDDEN_LAYERS == 0)
+								layer.push_back(new InputNode(weights, true));
+							else
+								layer.push_back(new InputNode(weights, isLast));
 						}
 						nodeIteration++;
 					}
@@ -447,10 +473,11 @@ namespace Sonar
 				else if (geneData.key() == "Layer" + std::to_string(layerIteration))
 				{
 					//Break if there are more layers being loaded
-					if (layerIteration >= HIDDEN_LAYERS + 1)
+					if (layerIteration > HIDDEN_LAYERS)
 						break;
 					std::vector<Node*> layer = std::vector<Node*>();
 					int nodeIteration = 0;
+					bool isLast;
 					for (const auto& layerData : geneData.value().items())
 					{
 						std::string key = layerData.key();
@@ -459,35 +486,55 @@ namespace Sonar
 							break;
 						if (layerData.key() == "Node" + std::to_string(nodeIteration))
 						{
-							float weight = 0;
+							std::vector<float> weights = std::vector<float>();
 							float bias = 0;
+							
 							for (const auto& nodeData : layerData.value().items())
 							{
 								std::string key = nodeData.key();
-								if (nodeData.key() == "Weight")
-									weight = nodeData.value();
+								if (nodeData.key() == "Weights")
+								{
+									for (const auto& weightData : nodeData.value().items())
+									{
+										weights.push_back(weightData.value());
+									}
+								}
 								else if (nodeData.key() == "Bias")
 									bias = nodeData.value();
+								else if (nodeData.key() == "isLast")
+									isLast = nodeData.value();
 							}
-							layer.push_back(new ActivationNode(weight, bias));
+							if(layerIteration == HIDDEN_LAYERS)
+								layer.push_back(new ActivationNode(weights, bias, true));
+							else
+								layer.push_back(new ActivationNode(weights, bias, isLast));
 						}
 						nodeIteration++;
 					}
 					//Initialize remaining nodes, if there are less than specified
 					for (int i = layer.size(); i < NODES_PER_LAYER; i++)
-						layer.push_back(new ActivationNode());
+					{
+						if (layerIteration == HIDDEN_LAYERS)
+							layer.push_back(new ActivationNode(true));
+						else
+							layer.push_back(new ActivationNode(isLast));
+					}
+						
 
 					nodeNetwork.push_back(layer);
 					layerIteration++;
 				}
 			}
 			//Initialize remaining layers, if there are less than specified
-			for (int i = nodeNetwork.size(); i < HIDDEN_LAYERS + 1; i++)
+			for (int i = nodeNetwork.size(); i <= HIDDEN_LAYERS; i++)
 			{
 				std::vector<Node*> layer = std::vector<Node*>();
 				for (int j = 0; j < NODES_PER_LAYER; j++)
 				{
-					layer.push_back(new ActivationNode());
+					if(i == HIDDEN_LAYERS)
+						layer.push_back(new ActivationNode(true));
+					else
+						layer.push_back(new ActivationNode(false));
 				}
 				nodeNetwork.push_back(layer);
 			}
@@ -504,9 +551,12 @@ namespace Sonar
 			std::vector<std::vector<Node*>> _nodeNetwork = std::vector<std::vector<Node*>>();
 
 			std::vector<Node*> inputNodes = std::vector<Node*>();
-			for (int i = 0; i < 4; i++)
+			for (int i = 0; i < 3; i++)
 			{
-				inputNodes.push_back(new InputNode());
+				if(HIDDEN_LAYERS == 0)
+					inputNodes.push_back(new InputNode(true));
+				else
+					inputNodes.push_back(new InputNode(false));
 			}
 			_nodeNetwork.push_back(inputNodes);
 			for (int i = 0; i < HIDDEN_LAYERS; i++)
@@ -514,7 +564,10 @@ namespace Sonar
 				std::vector<Node*> layer = std::vector<Node*>();
 				for (int j = 0; j < NODES_PER_LAYER; j++)
 				{
-					layer.push_back(new ActivationNode());
+					if(i == HIDDEN_LAYERS - 1)
+						layer.push_back(new ActivationNode(true));
+					else
+						layer.push_back(new ActivationNode(false));
 				}
 				_nodeNetwork.push_back(layer);
 			}
@@ -533,22 +586,46 @@ namespace Sonar
 		//Elitist selection
 		output.push_back(birds.at(0));
 		matingPool.push_back(birds.at(0));
+		output.push_back(birds.at(1));
+		matingPool.push_back(birds.at(1));
 
 		//Tournament selection
+		//while (matingPool.size() < MATING_POOL_SIZE)
+		//{
+		//	//Select a couple birds at random, and pick the best one
+		//	std::list<Bird*> selectionGroup = std::list<Bird*>();
+		//	for (int i = 0; i < SELECTION_GROUP_SIZE; i++)
+		//	{
+		//		//Get random gene, add to selection group
+		//		int randomIndex = rand() % birds.size();
+		//		selectionGroup.push_back(birds.at(randomIndex));
+		//	}
+		//	selectionGroup.sort(Bird::BirdComparison);
+		//	matingPool.push_back(*selectionGroup.begin());
+		//}
+	
+		//Roulette selection
+		int totalScore = 0;
+		for (Bird* bird : birds)
+			totalScore += bird->score;
+		//spin the wheel n times to fill the mating pool
 		while (matingPool.size() < MATING_POOL_SIZE)
 		{
-			//Select a couple birds at random, and pick the best one
-			std::list<Bird*> selectionGroup = std::list<Bird*>();
-			for (int i = 0; i < SELECTION_GROUP_SIZE; i++)
+			//value between 0 and sum of scores
+			int roulette = rand() % (totalScore + 1);
+			int range_min = 0;
+			//iterate the population and find where the roulette landed
+			for (Bird* bird : birds)
 			{
-				//Get random gene, add to selection group
-				int randomIndex = rand() % birds.size();
-				selectionGroup.push_back(birds.at(randomIndex));
+				if (roulette <= range_min + bird->score)
+				{
+					matingPool.push_back(bird);
+					break;
+				}
+				else
+					range_min += bird->score;
 			}
-			selectionGroup.sort(Bird::BirdComparison);
-			matingPool.push_back(*selectionGroup.begin());
 		}
-	
 
 		//The mating pool has now been created, so perform crossover
 
@@ -572,7 +649,7 @@ namespace Sonar
 		//Mutate
 
 		//iterate output birds, excluding the elite
-		for (int i = 1; i < output.size(); i++)
+		for (int i = 2; i < output.size(); i++)
 		{
 			//iterate layers
 			for (int j = 0; j < output.at(i)->nodeNetwork.size(); j++)
@@ -584,22 +661,30 @@ namespace Sonar
 					for (int k = 0; k < output.at(i)->nodeNetwork.at(j).size(); k++)
 					{
 						InputNode* node = static_cast<InputNode*>(output.at(i)->nodeNetwork.at(j).at(k));
-						//Find if mutation happens
-						int mutation = rand() % 101;
-						if (mutation < MUTATION_RATE)
+						//iterate weights
+						for (int l = 0; l < node->weights.size(); l++)
 						{
-							//positive or negative change
-							int random = rand() % 2;
-							float weight = node->weight;
-							if (random == 0)
+							//Find if mutation happens
+							int mutation = rand() % 101;
+							if (mutation < MUTATION_RATE)
 							{
-								weight += MUTATION_ADJUSTMENT;
+								//positive or negative change
+								//int random = rand() % 2;
+								//float weight = node->weights.at(l);
+								//if (random == 0)
+								//{
+								//	weight += MUTATION_ADJUSTMENT;
+								//}
+								//else
+								//{
+								//	weight -= MUTATION_ADJUSTMENT;
+								//}
+								float weight = 0;
+								while (std::abs(weight) < 0.0001f) {
+									weight = -WEIGHT_MAX + ((float)rand() / ((float)RAND_MAX / (WEIGHT_MAX - -WEIGHT_MAX)));
+								}
+								node->weights.at(l) = weight;
 							}
-							else
-							{
-								weight -= MUTATION_ADJUSTMENT;
-							}
-							node->weight = weight;
 						}
 					}
 				}
@@ -610,38 +695,47 @@ namespace Sonar
 					for (int k = 0; k < output.at(i)->nodeNetwork.at(j).size(); k++)
 					{
 						ActivationNode* node = static_cast<ActivationNode*>(output.at(i)->nodeNetwork.at(j).at(k));
-						//Find if mutation happens on weight
+
+						//iterate weights
+						for (int l = 0; l < node->weights.size(); l++) {
+							//Find if mutation happens on weight
+							int mutation = rand() % 101;
+							if (mutation < MUTATION_RATE)
+							{
+								//positive or negative change
+	/*							int random = rand() % 2;
+								float weight = node->weights.at(l);
+								if (random == 0)
+								{
+									weight += MUTATION_ADJUSTMENT;
+								}
+								else
+								{
+									weight -= MUTATION_ADJUSTMENT;
+								}*/
+								float weight = 0;
+								while (std::abs(weight) < 0.0001f) {
+									weight = -WEIGHT_MAX + ((float)rand() / ((float)RAND_MAX / (WEIGHT_MAX - -WEIGHT_MAX)));
+								}
+								node->weights.at(l) = weight;
+							}
+						}
+						//Find if mutation happens on bias
 						int mutation = rand() % 101;
 						if (mutation < MUTATION_RATE)
 						{
 							//positive or negative change
-							int random = rand() % 2;
-							float weight = node->weight;
-							if (random == 0) 
-							{
-								weight += MUTATION_ADJUSTMENT;
-							}
-							else 
-							{
-								weight -= MUTATION_ADJUSTMENT;
-							}
-							node->weight = weight;
-						}
-						//Find if mutation happens on bias
-						mutation = rand() % 101;
-						if (mutation < MUTATION_RATE)
-						{
-							//positive or negative change
-							int random = rand() % 2;
-							float bias = node->bias;
-							if (random == 0)
-							{
-								bias += MUTATION_ADJUSTMENT;
-							}
-							else
-							{
-								bias -= MUTATION_ADJUSTMENT;
-							}
+							//int random = rand() % 2;
+							//float bias = node->bias;
+							//if (random == 0)
+							//{
+							//	bias += MUTATION_ADJUSTMENT;
+							//}
+							//else
+							//{
+							//	bias -= MUTATION_ADJUSTMENT;
+							//}
+							float bias = -WEIGHT_MAX + ((float)rand() / ((float)RAND_MAX / (WEIGHT_MAX - -WEIGHT_MAX)));
 							node->bias = bias;
 						}
 					}
@@ -651,7 +745,7 @@ namespace Sonar
 
 
 		//Delete old birds
-		for (int i = 1; i < birds.size(); i++)
+		for (int i = 2; i < birds.size(); i++)
 		{
 			if (birds.at(i) != nullptr)
 				delete birds.at(i);
@@ -675,39 +769,42 @@ namespace Sonar
 				{
 					InputNode* parent1Node = static_cast<InputNode*>(parent1->nodeNetwork.at(i).at(j));
 					InputNode* parent2Node = static_cast<InputNode*>(parent2->nodeNetwork.at(i).at(j));
-					float difference = 0;
-					//find if the numbers have same sign, then find difference
-					if (std::signbit(parent1Node->weight) == std::signbit(parent2Node->weight))
-					{
-						if (abs(parent1Node->weight) > abs(parent2Node->weight))
-							difference = abs(parent1Node->weight) - abs(parent2Node->weight);
+					std::vector<float> weights = std::vector<float>();
+					for (int k = 0; k < parent1Node->weights.size(); k++) {
+						float difference = 0;
+						//find if the numbers have same sign, then find difference
+						if (std::signbit(parent1Node->weights.at(k)) == std::signbit(parent2Node->weights.at(k)))
+						{
+							if (abs(parent1Node->weights.at(k)) > abs(parent2Node->weights.at(k)))
+								difference = abs(parent1Node->weights.at(k)) - abs(parent2Node->weights.at(k));
+							else
+								difference = abs(parent2Node->weights.at(k)) - abs(parent1Node->weights.at(k));
+						}
 						else
-							difference = abs(parent2Node->weight) - abs(parent1Node->weight);
-					}
-					else
-						difference = abs(parent1Node->weight) + abs(parent2Node->weight);
-					float adjustment = difference * CROSSOVER_RATE;
-					int random = rand() % 2;
-					float weight = 0;
-					//Choose a weight from the 2 parents, and adjust it towards the other parent
-					if (random == 0) 
-					{
-						weight = parent1Node->weight;
-						if (parent1Node->weight > parent2Node->weight)
-							weight -= adjustment;
+							difference = abs(parent1Node->weights.at(k)) + abs(parent2Node->weights.at(k));
+						float adjustment = difference * CROSSOVER_RATE;
+						int random = rand() % 2;
+						float weight = 0;
+						//Choose a weight from the 2 parents, and adjust it towards the other parent
+						if (random == 0)
+						{
+							weight = parent1Node->weights.at(k);
+							if (parent1Node->weights.at(k) > parent2Node->weights.at(k))
+								weight -= adjustment;
+							else
+								weight += adjustment;
+						}
 						else
-							weight += adjustment;
+						{
+							weight = parent2Node->weights.at(k);
+							if (parent2Node->weights.at(k) > parent1Node->weights.at(k))
+								weight -= adjustment;
+							else
+								weight += adjustment;
+						}
+						weights.push_back(weight);
 					}
-					else 
-					{
-						weight = parent2Node->weight;
-						if (parent2Node->weight > parent1Node->weight)
-							weight -= adjustment;
-						else
-							weight += adjustment;
-					}
-					layer.push_back(new InputNode(weight));
-
+					layer.push_back(new InputNode(weights, parent1Node->lastLayer));
 				}
 				nodeNetwork.push_back(layer);
 			}
@@ -720,36 +817,40 @@ namespace Sonar
 				{
 					ActivationNode* parent1Node = static_cast<ActivationNode*>(parent1->nodeNetwork.at(i).at(j));
 					ActivationNode* parent2Node = static_cast<ActivationNode*>(parent2->nodeNetwork.at(i).at(j));
-					float weightDifference = 0;
-					//find if the numbers have same sign, then find difference
-					if (std::signbit(parent1Node->weight) == std::signbit(parent2Node->weight))
-					{
-						if (abs(parent1Node->weight) > abs(parent2Node->weight))
-							weightDifference = abs(parent1Node->weight) - abs(parent2Node->weight);
+					std::vector<float> weights = std::vector<float>();
+					for (int k = 0; k < parent1Node->weights.size(); k++) {
+						float weightDifference = 0;
+						//find if the numbers have same sign, then find difference
+						if (std::signbit(parent1Node->weights.at(k)) == std::signbit(parent2Node->weights.at(k)))
+						{
+							if (abs(parent1Node->weights.at(k)) > abs(parent2Node->weights.at(k)))
+								weightDifference = abs(parent1Node->weights.at(k)) - abs(parent2Node->weights.at(k));
+							else
+								weightDifference = abs(parent2Node->weights.at(k)) - abs(parent1Node->weights.at(k));
+						}
 						else
-							weightDifference = abs(parent2Node->weight) - abs(parent1Node->weight);
-					}
-					else
-						weightDifference = abs(parent1Node->weight) + abs(parent2Node->weight);
-					float adjustment = weightDifference * CROSSOVER_RATE;
-					int random = rand() % 2;
-					float weight = 0;
-					//Choose a weight from the 2 parents, and adjust it towards the other parent
-					if (random == 0)
-					{
-						weight = parent1Node->weight;
-						if (parent1Node->weight > parent2Node->weight)
-							weight -= adjustment;
+							weightDifference = abs(parent1Node->weights.at(k)) + abs(parent2Node->weights.at(k));
+						float adjustment = weightDifference * CROSSOVER_RATE;
+						int random = rand() % 2;
+						float weight = 0;
+						//Choose a weight from the 2 parents, and adjust it towards the other parent
+						if (random == 0)
+						{
+							weight = parent1Node->weights.at(k);
+							if (parent1Node->weights.at(k) > parent2Node->weights.at(k))
+								weight -= adjustment;
+							else
+								weight += adjustment;
+						}
 						else
-							weight += adjustment;
-					}
-					else
-					{
-						weight = parent2Node->weight;
-						if (parent2Node->weight > parent1Node->weight)
-							weight -= adjustment;
-						else
-							weight += adjustment;
+						{
+							weight = parent2Node->weights.at(k);
+							if (parent2Node->weights.at(k) > parent1Node->weights.at(k))
+								weight -= adjustment;
+							else
+								weight += adjustment;
+						}
+						weights.push_back(weight);
 					}
 
 					float biasDifference = 0;
@@ -757,14 +858,14 @@ namespace Sonar
 					if (std::signbit(parent1Node->bias) == std::signbit(parent2Node->bias))
 					{
 						if (abs(parent1Node->bias) > abs(parent2Node->bias))
-							weightDifference = abs(parent1Node->bias) - abs(parent2Node->bias);
+							biasDifference = abs(parent1Node->bias) - abs(parent2Node->bias);
 						else
-							weightDifference = abs(parent2Node->bias) - abs(parent1Node->bias);
+							biasDifference = abs(parent2Node->bias) - abs(parent1Node->bias);
 					}
 					else
-						weightDifference = abs(parent1Node->bias) + abs(parent2Node->bias);
-					adjustment = biasDifference * CROSSOVER_RATE;
-					random = rand() % 2;
+						biasDifference = abs(parent1Node->bias) + abs(parent2Node->bias);
+					float adjustment = biasDifference * CROSSOVER_RATE;
+					int random = rand() % 2;
 					float bias = 0;
 					//Choose a bias from the 2 parents, and adjust it towards the other parent
 					if (random == 0)
@@ -784,7 +885,7 @@ namespace Sonar
 							bias += adjustment;
 					}
 
-					layer.push_back(new ActivationNode(weight, bias));
+					layer.push_back(new ActivationNode(weights, bias, parent1Node->lastLayer));
 				}
 				nodeNetwork.push_back(layer);
 			}

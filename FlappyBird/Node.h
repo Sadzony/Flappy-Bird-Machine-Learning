@@ -1,15 +1,20 @@
 #pragma once
 #include <cmath>
+#include <vector>
 class Node
 {
 public:
-	Node() { }
+	Node() { lastLayer = false; }
+	Node(bool p_lastLayer) : lastLayer(p_lastLayer) { }
 
 	virtual void AddInput(float input);
 
 	virtual float GenerateOutput();
+	virtual float GenerateOutput(int nodeIndex) { return 0; }
 
 	void ClearValue() { sum = 0; }
+
+	bool lastLayer;
 
 protected:
 	float sum = 0;
@@ -18,32 +23,34 @@ protected:
 class InputNode : public Node
 {
 public:
-	InputNode();
+	InputNode(bool p_lastLayer);
 
-	InputNode(float p_weight) : weight(p_weight) { }
+	InputNode(std::vector<float> p_weights, bool p_lastLayer) { weights = std::vector<float>(p_weights); lastLayer = p_lastLayer; }
 	
 	float GenerateOutput() override;
+	float GenerateOutput(int nodeIndex) override;
 
-	float weight = 0;
+	std::vector<float> weights;
+
 };
 
 class ActivationNode : public Node
 {
 public:
-	ActivationNode();
+	ActivationNode(bool p_lastLayer);
 
-	ActivationNode(float p_weight, float p_bias) : weight(p_weight), bias(p_bias) { }
+	ActivationNode(std::vector<float> p_weights, float p_bias, bool p_lastLayer) : bias(p_bias) { weights = std::vector<float>(p_weights); lastLayer = p_lastLayer; }
 
 	float GenerateOutput() override;
+	float GenerateOutput(int nodeIndex) override;
 
-	float weight = 0;
+	std::vector<float> weights;
 	float bias = 0;
 };
 
 class OutputNode : public Node
 {
 public:
-	OutputNode() { }
 	float GenerateOutput() override;
 };
 
