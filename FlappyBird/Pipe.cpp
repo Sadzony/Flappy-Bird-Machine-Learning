@@ -52,6 +52,7 @@ namespace Sonar
 	{
 		for ( unsigned int i = 0; i < pipeSprites.size(); i++)
 		{
+			float width = pipeSprites.at(i).getLocalBounds().width;
 			if (pipeSprites.at(i).getPosition().x < 0 - pipeSprites.at(i).getLocalBounds().width)
 			{
 				pipeSprites.erase( pipeSprites.begin( ) + i );

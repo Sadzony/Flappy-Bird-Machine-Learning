@@ -32,13 +32,14 @@ namespace Sonar
 		bool FindShouldFlap(float distanceToPipe, float distanceToCentreOfPipe, float distanceToGround, float distanceToTop);
 
 		int score = 0;
+		int bestScoreSoFar = 0;
 		bool isAlive = true;
 
 
 		//Comparison function used for sorting
 		static bool BirdComparison(const Bird* first, const Bird* second)
 		{
-			return (first->score > second->score);
+			return (first->bestScoreSoFar > second->bestScoreSoFar);
 		}
 
 		std::vector<std::vector<Node*>> nodeNetwork;

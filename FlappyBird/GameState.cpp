@@ -8,7 +8,7 @@
 
 #include <iostream>
 
-#define REPLAY true
+#define REPLAY false
 
 #define PLAY_WITH_AI 1
 
@@ -98,7 +98,7 @@ namespace Sonar
 				std::vector<std::vector<Node*>> _nodeNetwork = std::vector<std::vector<Node*>>();
 
 				std::vector<Node*> inputNodes = std::vector<Node*>();
-				for (int i = 0; i < 3; i++)
+				for (int i = 0; i < 4; i++)
 				{
 					if(HIDDEN_LAYERS == 0)
 						inputNodes.push_back(new InputNode(true));
@@ -237,6 +237,8 @@ namespace Sonar
 					if (bird->isAlive) {
 						if (collision.CheckSpriteCollision(bird->GetSprite(), 0.7f, landSprites.at(i), 1.0f, false))
 						{
+							if (bird->score > bird->bestScoreSoFar)
+								bird->bestScoreSoFar = bird->score;
 							bird->isAlive = false;
 							std::cout << "death" << std::endl;
 							//_gameState = GameStates::eGameOver;
@@ -257,6 +259,8 @@ namespace Sonar
 					if (bird->isAlive) {
 						if (collision.CheckSpriteCollision(bird->GetSprite(), 0.625f, pipeSprites.at(i), 1.0f, true))
 						{
+							if (bird->score > bird->bestScoreSoFar)
+								bird->bestScoreSoFar = bird->score;
 							bird->isAlive = false;
 							//_gameState = GameStates::eGameOver;
 							std::cout << "death" << std::endl;
@@ -365,7 +369,7 @@ namespace Sonar
 		for (int i = 0; i < birds.size(); i++) 
 		{
 			json geneData;
-			geneData["Score"] = birds.at(i)->score;
+			geneData["Score"] = birds.at(i)->bestScoreSoFar;
 			//Iterate layers
 			for (int j = 0; j < birds.at(i)->nodeNetwork.size(); j++)
 			{
@@ -540,7 +544,7 @@ namespace Sonar
 			}
 
 			Bird* nextBird = new Bird(data, nodeNetwork);
-			nextBird->score = score;
+			nextBird->bestScoreSoFar = score;
 			loadedBirds.push_back(nextBird);
 			geneIteration++;
 		}
@@ -551,7 +555,7 @@ namespace Sonar
 			std::vector<std::vector<Node*>> _nodeNetwork = std::vector<std::vector<Node*>>();
 
 			std::vector<Node*> inputNodes = std::vector<Node*>();
-			for (int i = 0; i < 3; i++)
+			for (int i = 0; i < 4; i++)
 			{
 				if(HIDDEN_LAYERS == 0)
 					inputNodes.push_back(new InputNode(true));
@@ -584,10 +588,11 @@ namespace Sonar
 		std::vector<Bird*> output = std::vector<Bird*>();
 
 		//Elitist selection
-		output.push_back(birds.at(0));
-		matingPool.push_back(birds.at(0));
-		output.push_back(birds.at(1));
-		matingPool.push_back(birds.at(1));
+		for (int i = 0; i < ELITE_SIZE; i++)
+		{
+			output.push_back(birds.at(i));
+			matingPool.push_back(birds.at(i));
+		}
 
 		//Tournament selection
 		//while (matingPool.size() < MATING_POOL_SIZE)
@@ -606,8 +611,13 @@ namespace Sonar
 	
 		//Roulette selection
 		int totalScore = 0;
+		int bestScore = 0;
 		for (Bird* bird : birds)
-			totalScore += bird->score;
+		{
+			totalScore += bird->bestScoreSoFar;
+			if (bird->bestScoreSoFar > bestScore)
+				bestScore = bird->bestScoreSoFar;
+		}
 		//spin the wheel n times to fill the mating pool
 		while (matingPool.size() < MATING_POOL_SIZE)
 		{
@@ -617,13 +627,13 @@ namespace Sonar
 			//iterate the population and find where the roulette landed
 			for (Bird* bird : birds)
 			{
-				if (roulette <= range_min + bird->score)
+				if (roulette <= range_min + bird->bestScoreSoFar)
 				{
 					matingPool.push_back(bird);
 					break;
 				}
 				else
-					range_min += bird->score;
+					range_min += bird->bestScoreSoFar;
 			}
 		}
 
@@ -649,7 +659,7 @@ namespace Sonar
 		//Mutate
 
 		//iterate output birds, excluding the elite
-		for (int i = 2; i < output.size(); i++)
+		for (int i = ELITE_SIZE; i < output.size(); i++)
 		{
 			//iterate layers
 			for (int j = 0; j < output.at(i)->nodeNetwork.size(); j++)
@@ -668,20 +678,28 @@ namespace Sonar
 							int mutation = rand() % 101;
 							if (mutation < MUTATION_RATE)
 							{
-								//positive or negative change
-								//int random = rand() % 2;
-								//float weight = node->weights.at(l);
-								//if (random == 0)
-								//{
-								//	weight += MUTATION_ADJUSTMENT;
-								//}
-								//else
-								//{
-								//	weight -= MUTATION_ADJUSTMENT;
-								//}
+								//Adjust or randomize
+								int random = rand() % 10;
 								float weight = 0;
-								while (std::abs(weight) < 0.0001f) {
-									weight = -WEIGHT_MAX + ((float)rand() / ((float)RAND_MAX / (WEIGHT_MAX - -WEIGHT_MAX)));
+								if (random <= 8)
+								{
+									//positive or negative change
+									int random = rand() % 2;
+									weight = node->weights.at(l);
+									if (random == 0)
+									{
+
+										weight += static_cast<double>(rand()) / RAND_MAX * MUTATION_ADJUSTMENT;
+									}
+									else
+									{
+										weight += static_cast<double>(rand()) / RAND_MAX * MUTATION_ADJUSTMENT;
+									}
+								}
+								else {
+									while (std::abs(weight) < 0.0001f) {
+										weight = -WEIGHT_MAX + ((float)rand() / ((float)RAND_MAX / (WEIGHT_MAX - -WEIGHT_MAX)));
+									}
 								}
 								node->weights.at(l) = weight;
 							}
@@ -702,20 +720,28 @@ namespace Sonar
 							int mutation = rand() % 101;
 							if (mutation < MUTATION_RATE)
 							{
-								//positive or negative change
-	/*							int random = rand() % 2;
-								float weight = node->weights.at(l);
-								if (random == 0)
-								{
-									weight += MUTATION_ADJUSTMENT;
-								}
-								else
-								{
-									weight -= MUTATION_ADJUSTMENT;
-								}*/
+								//Adjust or randomize
+								int random = rand() % 10;
 								float weight = 0;
-								while (std::abs(weight) < 0.0001f) {
-									weight = -WEIGHT_MAX + ((float)rand() / ((float)RAND_MAX / (WEIGHT_MAX - -WEIGHT_MAX)));
+								if (random <= 8)
+								{
+									//positive or negative change
+									int random = rand() % 2;
+									weight = node->weights.at(l);
+									if (random == 0)
+									{
+
+										weight += static_cast<double>(rand()) / RAND_MAX * MUTATION_ADJUSTMENT;
+									}
+									else
+									{
+										weight += static_cast<double>(rand()) / RAND_MAX * MUTATION_ADJUSTMENT;
+									}
+								}
+								else {
+									while (std::abs(weight) < 0.0001f) {
+										weight = -WEIGHT_MAX + ((float)rand() / ((float)RAND_MAX / (WEIGHT_MAX - -WEIGHT_MAX)));
+									}
 								}
 								node->weights.at(l) = weight;
 							}
@@ -724,18 +750,26 @@ namespace Sonar
 						int mutation = rand() % 101;
 						if (mutation < MUTATION_RATE)
 						{
-							//positive or negative change
-							//int random = rand() % 2;
-							//float bias = node->bias;
-							//if (random == 0)
-							//{
-							//	bias += MUTATION_ADJUSTMENT;
-							//}
-							//else
-							//{
-							//	bias -= MUTATION_ADJUSTMENT;
-							//}
-							float bias = -WEIGHT_MAX + ((float)rand() / ((float)RAND_MAX / (WEIGHT_MAX - -WEIGHT_MAX)));
+							//Adjust or randomize
+							int random = rand() % 10;
+							float bias = 0;
+							if (random <= 8)
+							{
+								//positive or negative change
+								int random = rand() % 2;
+								bias = node->bias;
+								if (random == 0)
+								{
+									bias += static_cast<double>(rand()) / RAND_MAX * MUTATION_ADJUSTMENT;
+								}
+								else
+								{
+									bias -= static_cast<double>(rand()) / RAND_MAX * MUTATION_ADJUSTMENT;
+								}
+							}
+							else {
+								bias = -WEIGHT_MAX + ((float)rand() / ((float)RAND_MAX / (WEIGHT_MAX - -WEIGHT_MAX)));
+							}
 							node->bias = bias;
 						}
 					}
@@ -745,7 +779,7 @@ namespace Sonar
 
 
 		//Delete old birds
-		for (int i = 2; i < birds.size(); i++)
+		for (int i = ELITE_SIZE; i < birds.size(); i++)
 		{
 			if (birds.at(i) != nullptr)
 				delete birds.at(i);

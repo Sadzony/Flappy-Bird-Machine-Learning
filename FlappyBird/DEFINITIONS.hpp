@@ -39,15 +39,15 @@
 #define POINT_SOUND_FILEPATH "Resources/audio/Point.wav"
 #define WING_SOUND_FILEPATH "Resources/audio/Wing.wav"
 
-#define POPULATION_SIZE 2
-#define MATING_POOL_SIZE 8
-#define SELECTION_GROUP_SIZE 5
+#define POPULATION_SIZE 200
+#define ELITE_SIZE 4
+#define MATING_POOL_SIZE 10
 #define CROSSOVER_RATE 1.0f
-#define MUTATION_RATE 8
-#define MUTATION_ADJUSTMENT 0.025f;
+#define MUTATION_RATE 15
+#define MUTATION_ADJUSTMENT 0.35f;
 
 #define HIDDEN_LAYERS 1
-#define NODES_PER_LAYER 4
+#define NODES_PER_LAYER 5
 #define WEIGHT_MAX 1.2f
 
 #define GAME_SPEED 1

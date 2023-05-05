@@ -168,8 +168,15 @@ namespace Sonar
 		}
 	}
 
-	bool Bird::FindShouldFlap(float distanceToPipe, float distanceToCentreOfPipe, float distanceToGround, float distanceToTop)
+	bool Bird::FindShouldFlap(float fdistanceToPipe, float fdistanceToCentreOfPipe, float fdistanceToGround, float fdistanceToTop)
 	{
+		//Normalize the values
+		float distanceToPipe = fdistanceToPipe / (SCREEN_WIDTH - 69);
+		float distanceToGround = fdistanceToGround / 763;
+		float distanceToCentreOfPipe = fdistanceToCentreOfPipe / 763;
+		float state = 0.0f;
+		if (_birdState == BIRD_STATE_FALLING)
+			state = 1.0f;
 		OutputNode output = OutputNode();
 		for (int i = 0; i < nodeNetwork.size(); i++)
 		{
@@ -179,7 +186,7 @@ namespace Sonar
 				nodeNetwork.at(i).at(0)->AddInput(distanceToPipe);
 				nodeNetwork.at(i).at(1)->AddInput(distanceToCentreOfPipe);
 				nodeNetwork.at(i).at(2)->AddInput(distanceToGround);
-				//nodeNetwork.at(i).at(3)->AddInput(distanceToTop);
+				nodeNetwork.at(i).at(3)->AddInput(state);
 			}
 
 			//iterate nodes on current layer
