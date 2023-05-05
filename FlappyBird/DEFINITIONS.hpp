@@ -50,7 +50,7 @@
 #define NODES_PER_LAYER 5
 #define WEIGHT_MAX 1.2f
 
-#define GAME_SPEED 1
+#define GAME_SPEED 2
 
 #define PIPE_MOVEMENT_SPEED 200.0f
 #define PIPE_SPAWN_FREQUENCY 1.5f
